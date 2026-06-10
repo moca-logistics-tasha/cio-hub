@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOCA CIO — AI Automation Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A2342;--navy-2:#163A5F;
+  --gold:#C9A84C;--gold-light:#E4C97A;--gold-pale:#F7EED0;
+  --white:#fff;--off:#F6F7FA;--gray-1:#EDF0F4;--gray-2:#CDD3DC;
+  --gray-3:#8E9AAB;--gray-4:#4A5568;--gray-9:#111827;
+  --green:#1B6B3A;--green-bg:#D3F0E0;
+  --amber:#7A4D0F;--amber-bg:#FEF3C7;
+  --blue:#1447A0;--blue-bg:#DBEAFE;
+  --teal:#0D6E5E;--teal-bg:#CCFBEF;
+  --coral:#993C1D;--coral-bg:#FAECE7;
+  --purple:#4C3AB5;--purple-bg:#EDE9FE;
+  --font-head:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+body{font-family:var(--font-body);background:var(--off);color:var(--gray-9);font-size:14px;line-height:1.6;min-height:100vh}
+
+header{background:var(--navy);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-logo{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--gold);letter-spacing:0.04em}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
+.header-badge{font-size:11px;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.12)}
+
+.hero{background:var(--navy);padding:60px 40px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:var(--off);clip-path:ellipse(55% 100% at 50% 100%)}
+.hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.hero-title{font-family:var(--font-head);font-size:38px;font-weight:700;color:var(--white);line-height:1.15;margin-bottom:16px;max-width:700px;margin-left:auto;margin-right:auto}
+.hero-title span{color:var(--gold-light)}
+.hero-desc{font-size:15px;color:rgba(255,255,255,0.6);max-width:560px;margin:0 auto 28px;line-height:1.7}
+.hero-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-btn{padding:11px 22px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.15s}
+.hero-btn-primary{background:var(--gold);color:var(--navy);border:none}
+.hero-btn-primary:hover{background:var(--gold-light)}
+.hero-btn-secondary{background:transparent;color:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.2)}
+.hero-btn-secondary:hover{background:rgba(255,255,255,0.08);color:white}
+
+.section{padding:48px 40px}
+.section-label{font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--gray-3);margin-bottom:6px}
+.section-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--gray-3);margin-bottom:28px}
+
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:48px}
+.tool-card{background:var(--white);border:1px solid var(--gray-1);border-radius:14px;overflow:hidden;transition:all 0.15s;text-decoration:none;display:block}
+.tool-card:hover{border-color:var(--navy);transform:translateY(-2px)}
+.tool-card-top{padding:20px 22px 0;display:flex;align-items:flex-start;gap:14px}
+.tool-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.tool-card-body{padding:14px 22px 20px}
+.tool-name{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.tool-desc{font-size:12px;color:var(--gray-4);line-height:1.6;margin-bottom:12px}
+.tool-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
+.tag-live{background:var(--green-bg);color:var(--green)}
+.tag-doc{background:var(--blue-bg);color:var(--blue)}
+.tag-wip{background:var(--amber-bg);color:var(--amber)}
+.tag-soon{background:var(--gray-1);color:var(--gray-4)}
+.tool-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--blue);margin-top:10px;text-decoration:none}
+.tool-link:hover{text-decoration:underline}
+.tool-divider{height:1px;background:var(--gray-1);margin:0 22px}
+
+.phase-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:48px}
+.phase-card{background:var(--white);border:1px solid var(--gray-1);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ph-color,var(--navy))}
+.phase-num{font-size:10px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.phase-time{font-size:11px;color:var(--gray-3);margin-bottom:6px}
+.phase-title{font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.phase-item{font-size:11px;color:var(--gray-4);padding:3px 0;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.ph-dot{width:4px;height:4px;border-radius:50%;background:var(--ph-color,var(--navy));flex-shrink:0;margin-top:5px}
+.phase-status{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:8px}
+
+.questions-section{background:var(--white);border:1px solid var(--gray-1);border-radius:14px;padding:24px 28px;margin-bottom:48px}
+.q-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-1)}
+.q-item:last-child{border-bottom:none}
+.q-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.q-text{font-size:12px;color:var(--gray-9);flex:1;line-height:1.5}
+.q-owner{font-size:10px;color:var(--gray-3);background:var(--gray-1);padding:2px 8px;border-radius:9px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.q-status-open{font-size:10px;font-weight:600;color:var(--amber);background:var(--amber-bg);padding:2px 8px;border-radius:9px;flex-shrink:0;margin-top:2px}
+.q-status-wip{font-size:10px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 8px;border-radius:9px;flex-shrink:0;margin-top:2px}
+
+footer{background:var(--navy);padding:24px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap}
+.footer-brand{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--gold)}
+.footer-text{font-size:11px;color:rgba(255,255,255,0.35)}
+.footer-updated{font-size:11px;color:rgba(255,255,255,0.3)}
+
+@media(max-width:700px){
+  .hero{padding:40px 20px 60px}
+  .hero-title{font-size:26px}
+  .section{padding:32px 20px}
+  .phase-row{grid-template-columns:1fr 1fr}
+  .tools-grid{grid-template-columns:1fr}
+  header{padding:0 20px}
+  footer{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-logo">MOCA</div>
+    <div class="header-sub">CIO — AI Automation Hub</div>
+  </div>
+  <div class="header-badge">Internal · Confidential · June 2026</div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">MOCA Logistics · Chief Innovation Officer</div>
+  <h1 class="hero-title">One system that runs <span>every project</span> we touch</h1>
+  <p class="hero-desc">From bid to close — the MOCA Operating System connects our field teams, our data, and our clients into a single intelligent platform built on tools we already own.</p>
+  <div class="hero-links">
+    <a href="MOCA_PM_Intelligence_System_v2.html" class="hero-btn hero-btn-primary">Open PM Intelligence System</a>
+    <a href="MOCA_OS_Lifecycle.html" class="hero-btn hero-btn-secondary">View Project Lifecycle</a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Interactive tools</div>
+  <div class="section-title">Live demos — click to explore</div>
+  <div class="section-sub">Open in any browser. No login required. Switch between PM, NIR, and Leadership views.</div>
+
+  <div class="tools-grid">
+
+    <a href="MOCA_PM_Intelligence_System_v2.html" class="tool-card">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--blue-bg)">📊</div>
+        <div>
+          <div class="tool-name">PM Intelligence System</div>
+          <div style="display:flex;gap:5px;margin-top:4px">
+            <span class="tag tag-live">live demo</span>
+            <span class="tag tag-live">bilingual</span>
+          </div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Role-based dashboard for PMs, NIRs, and Leadership. Shows real-time site status, predicted risks, 4-week planner, worker assignment, DAT items, and Copilot chat. Lifecycle bar shows where each project sits from bid to close.</div>
+        <div class="tool-tags">
+          <span class="tag tag-live">PM view</span>
+          <span class="tag tag-live">NIR view</span>
+          <span class="tag tag-live">Leadership view</span>
+          <span class="tag tag-live">EN · ES</span>
+        </div>
+        <div class="tool-link">Open demo →</div>
+      </div>
+    </a>
+
+    <a href="MOCA_OS_Lifecycle.html" class="tool-card">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--teal-bg)">🗺</div>
+        <div>
+          <div class="tool-name">Project Lifecycle Walkthrough</div>
+          <div style="display:flex;gap:5px;margin-top:4px">
+            <span class="tag tag-live">live demo</span>
+            <span class="tag tag-live">ownership checklist</span>
+          </div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Six-stage lifecycle from bid to learn, with cartoon walkthroughs, ownership checklists, worker passport system, and a four-phase pilot plan. Every stage shows what is automated vs. human-owned. Bilingual English and Spanish.</div>
+        <div class="tool-tags">
+          <span class="tag tag-live">6 lifecycle stages</span>
+          <span class="tag tag-live">worker passport</span>
+          <span class="tag tag-wip">bid: placeholder</span>
+        </div>
+        <div class="tool-link">Open walkthrough →</div>
+      </div>
+    </a>
+
+    <div class="tool-card" style="cursor:default">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--amber-bg)">📦</div>
+        <div>
+          <div class="tool-name">Inventory Scanning System</div>
+          <div style="display:flex;gap:5px;margin-top:4px">
+            <span class="tag tag-wip">in design</span>
+          </div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">NIR uses phone camera to scan UPC barcodes. System matches UIN, logs receipt, and updates Amazon systems automatically. Hybrid approach: UPC barcode as primary, image recognition as fallback. No handheld scanners required.</div>
+        <div class="tool-tags">
+          <span class="tag tag-wip">UPC primary</span>
+          <span class="tag tag-wip">image backup</span>
+          <span class="tag tag-soon">1-pager coming</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card" style="cursor:default">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--purple-bg)">👷</div>
+        <div>
+          <div class="tool-name">Worker Passport System</div>
+          <div style="display:flex;gap:5px;margin-top:4px">
+            <span class="tag tag-wip">in design</span>
+          </div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Every MOCA field worker has a digital passport tracking build types completed, modules built, skill level, certifications, and performance scores. The staffing algorithm uses passport data to assign the right person to the right project.</div>
+        <div class="tool-tags">
+          <span class="tag tag-wip">skill levels 1–5</span>
+          <span class="tag tag-wip">HR to define</span>
+          <span class="tag tag-soon">Phase 3 build</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">Technical specifications</div>
+  <div class="section-title">Build documentation</div>
+  <div class="section-sub">Full technical specs for each system component. Written for the development team and leadership.</div>
+
+  <div class="tools-grid">
+
+    <div class="tool-card" style="cursor:default">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--green-bg)">✈️</div>
+        <div>
+          <div class="tool-name">Travel Request System</div>
+          <div style="display:flex;gap:5px;margin-top:4px"><span class="tag tag-doc">spec complete</span></div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Power Apps travel intake with mandatory PM approval gate, managed Operational Support queue, Engine integration for booking, and PO linkage to Acumatica. Full workflow design and build specification v1.0.</div>
+        <div class="tool-tags"><span class="tag tag-doc">Power Apps</span><span class="tag tag-doc">Acumatica</span><span class="tag tag-doc">Engine API</span></div>
+      </div>
+    </div>
+
+    <div class="tool-card" style="cursor:default">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--coral-bg)">🛒</div>
+        <div>
+          <div class="tool-name">Field Purchase Pre-Approval App</div>
+          <div style="display:flex;gap:5px;margin-top:4px"><span class="tag tag-doc">spec complete</span></div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Rules-based pre-approval for Home Depot and field purchases. Three categories: consumable (auto-approved), client-billable (auto under threshold), MOCA expense (always to manager). Full audit trail feeding Acumatica.</div>
+        <div class="tool-tags"><span class="tag tag-doc">Power Apps</span><span class="tag tag-doc">Power Automate</span><span class="tag tag-doc">SharePoint</span></div>
+      </div>
+    </div>
+
+    <div class="tool-card" style="cursor:default">
+      <div class="tool-card-top">
+        <div class="tool-icon" style="background:var(--blue-bg)">🎫</div>
+        <div>
+          <div class="tool-name">Enterprise Ticketing System</div>
+          <div style="display:flex;gap:5px;margin-top:4px"><span class="tag tag-doc">spec complete</span></div>
+        </div>
+      </div>
+      <div class="tool-divider" style="margin-top:14px"></div>
+      <div class="tool-card-body">
+        <div class="tool-desc">Freshservice adoption proposal for company-wide ticketing. Covers SLA enforcement, pattern detection, accountability by owner, and executive rollup. Replaces informal Teams and email request handling with structured operational intelligence.</div>
+        <div class="tool-tags"><span class="tag tag-doc">Freshservice</span><span class="tag tag-doc">SLA tracking</span><span class="tag tag-doc">C-Suite proposal</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">Build roadmap</div>
+  <div class="section-title">Four phases — each builds on the last</div>
+  <div class="section-sub">Phase 1 is active. Everything after it depends on what Phase 1 teaches us.</div>
+
+  <div class="phase-row">
+    <div class="phase-card" style="--ph-color:#0D6E5E">
+      <div class="phase-num">Phase 1</div>
+      <div class="phase-time">This week</div>
+      <div class="phase-title">Stop chasing planners</div>
+      <div class="phase-item"><span class="ph-dot"></span>SharePoint lists for all 7 sites</div>
+      <div class="phase-item"><span class="ph-dot"></span>Power Apps PM update form</div>
+      <div class="phase-item"><span class="ph-dot"></span>Thursday planner reminder automation</div>
+      <div class="phase-item"><span class="ph-dot"></span>Auto-escalation if missed</div>
+      <div class="phase-status" style="background:var(--green-bg);color:var(--green)">● Active now</div>
+    </div>
+    <div class="phase-card" style="--ph-color:var(--gold)">
+      <div class="phase-num">Phase 2</div>
+      <div class="phase-time">Next 30 days</div>
+      <div class="phase-title">Real-time project health</div>
+      <div class="phase-item"><span class="ph-dot"></span>Acumatica baseline connection</div>
+      <div class="phase-item"><span class="ph-dot"></span>Power BI dashboard all sites</div>
+      <div class="phase-item"><span class="ph-dot"></span>Inventory threshold alerts</div>
+      <div class="phase-item"><span class="ph-dot"></span>Leadership view — no email</div>
+      <div class="phase-status" style="background:var(--gray-1);color:var(--gray-4)">○ Upcoming</div>
+    </div>
+    <div class="phase-card" style="--ph-color:#E0720C">
+      <div class="phase-num">Phase 3</div>
+      <div class="phase-time">60 days</div>
+      <div class="phase-title">Copilot in the field</div>
+      <div class="phase-item"><span class="ph-dot"></span>Copilot bot live in Teams</div>
+      <div class="phase-item"><span class="ph-dot"></span>DAT tracking module</div>
+      <div class="phase-item"><span class="ph-dot"></span>UPC barcode scanning</div>
+      <div class="phase-item"><span class="ph-dot"></span>Voice and text field updates</div>
+      <div class="phase-status" style="background:var(--gray-1);color:var(--gray-4)">○ Upcoming</div>
+    </div>
+    <div class="phase-card" style="--ph-color:var(--navy)">
+      <div class="phase-num">Phase 4</div>
+      <div class="phase-time">90 days</div>
+      <div class="phase-title">AI learns the projects</div>
+      <div class="phase-item"><span class="ph-dot"></span>4-week planner auto-generated</div>
+      <div class="phase-item"><span class="ph-dot"></span>Gearing ratio model live</div>
+      <div class="phase-item"><span class="ph-dot"></span>PM reviews, not builds</div>
+      <div class="phase-item"><span class="ph-dot"></span>Compressed timeline modeling</div>
+      <div class="phase-status" style="background:var(--gray-1);color:var(--gray-4)">○ Upcoming</div>
+    </div>
+  </div>
+
+  <div class="section-label">Open questions</div>
+  <div class="section-title">What still needs to be answered</div>
+  <div class="section-sub">These are the known gaps. Each one has an owner. None are blockers for Phase 1.</div>
+
+  <div class="questions-section">
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--amber-bg)">❓</div>
+      <div class="q-text">Who owns the bid process at MOCA? Where does bid data currently live and what is the step-by-step process for building a competitive bid?</div>
+      <div class="q-owner">Ops TBD</div>
+      <div class="q-status-open">open</div>
+    </div>
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--amber-bg)">❓</div>
+      <div class="q-text">Who formally approves the awarded baseline before the project activates? Who assigns the PM and ops lead once award is confirmed?</div>
+      <div class="q-owner">Giancarlo</div>
+      <div class="q-status-open">open</div>
+    </div>
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--blue-bg)">🔄</div>
+      <div class="q-text">What is UTP and how does it fit into the tool ecosystem alongside DAT? Is it replacing AppSheet, the 4-week planner, or something else?</div>
+      <div class="q-owner">Paul / Harshad</div>
+      <div class="q-status-wip">in progress</div>
+    </div>
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--amber-bg)">❓</div>
+      <div class="q-text">Which tools is Amazon phasing out — MBOA, NI app, D3PLOY? What replaces them so MOCA training and tooling stays current?</div>
+      <div class="q-owner">Harshad</div>
+      <div class="q-status-open">open</div>
+    </div>
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--amber-bg)">❓</div>
+      <div class="q-text">What are the skill level definitions (1–5) for PM, NIR, Floor Leader, Skilled Labor, and Temp? Who approves promotions between levels?</div>
+      <div class="q-owner">HR + Lissette</div>
+      <div class="q-status-open">open</div>
+    </div>
+    <div class="q-item">
+      <div class="q-icon" style="background:var(--blue-bg)">🔄</div>
+      <div class="q-text">Which upcoming project will serve as the pilot site? Needs to be a simple delivery station with a seasoned PM. Lissette to recommend.</div>
+      <div class="q-owner">Lissette</div>
+      <div class="q-status-wip">in progress</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div>
+    <div class="footer-brand">MOCA Logistics</div>
+    <div class="footer-text" style="margin-top:2px">CIO — AI Automation Hub · Tasha Poduska · Internal use only</div>
+  </div>
+  <div class="footer-updated">Last updated June 2026</div>
+</footer>
+
+</body>
+</html>
