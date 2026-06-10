@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOCA Operating System — Project Lifecycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A2342;--navy-mid:#163A5F;--navy-light:#1E4D7B;
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-pale:#F5E9C4;
+  --white:#FFFFFF;--gray-50:#F7F8FA;--gray-100:#EEF0F3;
+  --gray-200:#D8DCE3;--gray-400:#9AA3B0;--gray-600:#5A6478;--gray-900:#1A2130;
+  --green:#2D6A4F;--green-bg:#D8F3DC;
+  --amber:#7B4F12;--amber-bg:#FFF3CD;
+  --red:#9B2335;--red-bg:#FDECEA;
+  --blue:#1A56A0;--blue-bg:#E8F0FD;
+  --teal:#0D7B6B;--teal-bg:#D0F0EC;
+  --coral:#993C1D;--coral-bg:#FAECE7;
+  --purple:#534AB7;--purple-bg:#EEEDFE;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
+}
+body{font-family:var(--font-body);background:var(--gray-50);color:var(--gray-900);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* LAYOUT */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.brand-name{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--gold);letter-spacing:0.04em}
+.brand-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+.nav-section-label{font-size:10px;font-weight:600;letter-spacing:0.08em;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9)}
+.nav-item.active{background:rgba(201,168,76,0.12);color:var(--gold-light);border-left-color:var(--gold)}
+.nav-item .stage-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.nav-item.active .stage-num{background:var(--gold);color:var(--navy)}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid rgba(255,255,255,0.08)}
+.user-row{display:flex;align-items:center;gap:10px}
+.user-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--navy)}
+.user-name{font-size:12px;font-weight:500;color:rgba(255,255,255,0.8)}
+.user-role{font-size:10px;color:rgba(255,255,255,0.35)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(10,35,66,0.06)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--navy)}
+.topbar-meta{font-size:12px;color:var(--gray-400)}
+.lang-toggle{display:flex;gap:4px}
+.lang-btn{padding:5px 12px;border:1px solid var(--gray-200);border-radius:20px;font-size:11px;font-weight:500;background:var(--white);color:var(--gray-600);cursor:pointer;transition:all 0.15s}
+.lang-btn:hover{background:var(--gray-100)}
+.lang-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+
+/* CONTENT */
+.content{padding:28px;flex:1}
+.stage-panel{display:none}
+.stage-panel.visible{display:block}
+
+/* STAGE HERO */
+.stage-hero{display:grid;grid-template-columns:180px 1fr;gap:24px;margin-bottom:28px;align-items:start}
+.cartoon-frame{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.cartoon-frame svg{width:140px;height:110px}
+.cartoon-label{font-size:11px;color:var(--gray-600);text-align:center;line-height:1.5}
+.stage-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.stage-desc{font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:14px;max-width:600px}
+.stage-tags{display:flex;gap:7px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.tag-auto{background:var(--green-bg);color:var(--green)}
+.tag-human{background:var(--amber-bg);color:var(--amber)}
+.tag-system{background:var(--blue-bg);color:var(--blue)}
+.tag-placeholder{background:var(--red-bg);color:var(--red)}
+
+/* PLACEHOLDER BOX */
+.placeholder-box{background:var(--red-bg);border:1px solid #F7C1C1;border-radius:var(--radius-md);padding:14px 16px;margin-bottom:24px}
+.placeholder-box strong{color:var(--red)}
+.placeholder-box p{font-size:13px;color:#791F1F;margin:0;line-height:1.6}
+
+/* CHECKLIST */
+.cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}
+.cl-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 20px}
+.cl-card-title{font-size:12px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
+.cl-card-title .owner-tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;margin-left:auto}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--gray-100)}
+.cl-item:last-child{border-bottom:none}
+.cl-check{width:17px;height:17px;border:1.5px solid var(--gray-200);border-radius:4px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;background:var(--white)}
+.cl-check:hover{border-color:var(--navy)}
+.cl-check.done{background:var(--green);border-color:var(--green)}
+.cl-check.done::after{content:'✓';font-size:10px;color:white;font-weight:600}
+.cl-text{font-size:12px;color:var(--gray-900);line-height:1.5;flex:1}
+.cl-owner{font-size:10px;color:var(--gray-600);background:var(--gray-100);padding:2px 7px;border-radius:9px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+
+/* PASSPORT */
+.passport-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;margin-top:24px}
+.passport-top{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)}
+.p-avatar{width:42px;height:42px;border-radius:50%;background:var(--teal-bg);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--teal);flex-shrink:0}
+.p-name{font-size:15px;font-weight:500;color:var(--gray-900)}
+.p-role{font-size:12px;color:var(--gray-400)}
+.p-badge{margin-left:auto;font-size:11px;background:var(--green-bg);color:var(--green);padding:3px 9px;border-radius:20px;font-weight:500}
+.skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.skill-item{background:var(--gray-50);border-radius:var(--radius-md);padding:10px 12px;border:1px solid var(--gray-100)}
+.skill-name{font-size:11px;font-weight:500;color:var(--gray-900);margin-bottom:5px}
+.skill-track{height:5px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.skill-fill{height:100%;border-radius:3px}
+.skill-count{font-size:10px;color:var(--gray-400)}
+
+/* PILOT PHASES */
+.phase-bar-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:24px 0 20px;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden}
+.phase-block{padding:14px 16px;border-right:1px solid var(--gray-200)}
+.phase-block:last-child{border-right:none}
+.phase-num{font-size:10px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px}
+.phase-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.phase-time{font-size:11px;color:var(--gray-400)}
+.phase-stripe{height:4px;margin-top:10px;border-radius:2px}
+.pilot-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pilot-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 18px}
+.pilot-card-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--gray-100)}
+.pilot-item{font-size:12px;color:var(--gray-600);padding:4px 0;display:flex;gap:7px;align-items:flex-start;line-height:1.5}
+.pilot-dot{width:5px;height:5px;border-radius:50%;background:var(--gray-400);flex-shrink:0;margin-top:5px}
+
+/* PROGRESS */
+.progress-section{margin-top:24px}
+.progress-title{font-size:13px;font-weight:500;color:var(--navy);margin-bottom:14px}
+.progress-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.progress-label{font-size:12px;color:var(--gray-600);width:160px;flex-shrink:0}
+.progress-track{flex:1;height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px}
+.progress-pct{font-size:11px;font-weight:500;color:var(--gray-600);width:32px;text-align:right;flex-shrink:0}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{width:60px}
+  .sidebar .brand-sub,.sidebar .nav-section-label,.sidebar .user-name,.sidebar .user-role{display:none}
+  .brand-name{font-size:14px;letter-spacing:0}
+  .nav-item{padding:10px;justify-content:center}
+  .nav-item .nav-label{display:none}
+  .main{margin-left:60px}
+  .stage-hero{grid-template-columns:1fr}
+  .cl-grid{grid-template-columns:1fr}
+  .pilot-grid{grid-template-columns:1fr}
+  .phase-bar-row{grid-template-columns:1fr 1fr}
+  .skill-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-name">MOCA</div>
+    <div class="brand-sub">Operating System</div>
+  </div>
+
+  <div class="nav-section-label">Project Lifecycle</div>
+
+  <a class="nav-item active" onclick="showStage(0,this)" href="#">
+    <div class="stage-num">1</div>
+    <span class="nav-label" data-en="Bid" data-es="Oferta">Bid</span>
+  </a>
+  <a class="nav-item" onclick="showStage(1,this)" href="#">
+    <div class="stage-num">2</div>
+    <span class="nav-label" data-en="Award" data-es="Adjudicación">Award</span>
+  </a>
+  <a class="nav-item" onclick="showStage(2,this)" href="#">
+    <div class="stage-num">3</div>
+    <span class="nav-label" data-en="Mobilize" data-es="Movilización">Mobilize</span>
+  </a>
+  <a class="nav-item" onclick="showStage(3,this)" href="#">
+    <div class="stage-num">4</div>
+    <span class="nav-label" data-en="Execute" data-es="Ejecución">Execute</span>
+  </a>
+  <a class="nav-item" onclick="showStage(4,this)" href="#">
+    <div class="stage-num">5</div>
+    <span class="nav-label" data-en="Close" data-es="Cierre">Close</span>
+  </a>
+  <a class="nav-item" onclick="showStage(5,this)" href="#">
+    <div class="stage-num">6</div>
+    <span class="nav-label" data-en="Learn" data-es="Aprender">Learn</span>
+  </a>
+
+  <div class="nav-section-label">People &amp; Pilot</div>
+
+  <a class="nav-item" onclick="showStage(6,this)" href="#">
+    <div class="stage-num">W</div>
+    <span class="nav-label" data-en="Worker Passport" data-es="Pasaporte Laboral">Worker Passport</span>
+  </a>
+  <a class="nav-item" onclick="showStage(7,this)" href="#">
+    <div class="stage-num">P</div>
+    <span class="nav-label" data-en="Pilot Plan" data-es="Plan Piloto">Pilot Plan</span>
+  </a>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-av">TP</div>
+      <div>
+        <div class="user-name">Tasha Poduska</div>
+        <div class="user-role">CIO · MOCA Logistics</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="page-title">Stage 1 — Bid</div>
+      <div class="topbar-meta">MOCA OS · Lifecycle Walkthrough</div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">English</button>
+      <button class="lang-btn" onclick="setLang('es',this)">Español</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- STAGE 0: BID -->
+    <div id="s0" class="stage-panel visible">
+      <div class="placeholder-box">
+        <p><strong>Placeholder — awaiting bid process input from operations team.</strong> The ownership fields and questions below are ready. Fill in once the bid process is documented with Giancarlo / Lissette / Ops leads.</p>
+      </div>
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="15" y="10" width="75" height="90" rx="5" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/>
+            <rect x="24" y="24" width="50" height="6" rx="3" fill="#85B7EB"/>
+            <rect x="24" y="36" width="38" height="4" rx="2" fill="#B5D4F4"/>
+            <rect x="24" y="45" width="44" height="4" rx="2" fill="#B5D4F4"/>
+            <rect x="24" y="54" width="32" height="4" rx="2" fill="#B5D4F4"/>
+            <rect x="24" y="63" width="40" height="4" rx="2" fill="#B5D4F4"/>
+            <rect x="24" y="76" width="50" height="16" rx="4" fill="#185FA5"/>
+            <text x="49" y="88" font-size="9" fill="#E6F1FB" text-anchor="middle" font-family="sans-serif" font-weight="600">SUBMIT BID</text>
+            <circle cx="112" cy="30" r="18" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/>
+            <text x="112" y="34" font-size="14" fill="#633806" text-anchor="middle" font-family="sans-serif" font-weight="700">?</text>
+            <text x="112" y="58" font-size="8" fill="#633806" text-anchor="middle" font-family="sans-serif">TBD</text>
+          </svg>
+          <div class="cartoon-label" data-en="Amazon posts opportunity. MOCA builds the bid." data-es="Amazon publica oportunidad. MOCA elabora la oferta.">Amazon posts opportunity. MOCA builds the bid.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 1 — Bid" data-es="Etapa 1 — Oferta">Stage 1 — Bid</div>
+          <div class="stage-desc" data-en="Amazon releases a new project opportunity (ARS, SSD, 1DC, TNS, Delivery Station, etc.). MOCA builds a competitive bid using historical data, gearing ratios, available staff, and lessons learned from past similar projects. The winning bid becomes the permanent baseline for the entire project." data-es="Amazon publica una nueva oportunidad de proyecto. MOCA elabora una oferta competitiva usando datos históricos, ratios de rendimiento, personal disponible y lecciones aprendidas de proyectos similares anteriores. La oferta ganadora se convierte en la línea base permanente.">Amazon releases a new project opportunity (ARS, SSD, 1DC, TNS, Delivery Station, etc.). MOCA builds a competitive bid using historical data, gearing ratios, available staff, and lessons learned from past similar projects. The winning bid becomes the permanent baseline for the entire project.</div>
+          <div class="stage-tags">
+            <span class="tag tag-placeholder" data-en="Placeholder — ops team to fill in" data-es="Pendiente — equipo de ops por completar">Placeholder — ops team to fill in</span>
+            <span class="tag tag-human" data-en="Human decision" data-es="Decisión humana">Human decision</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="Questions to answer — owners TBD" data-es="Preguntas a responder — responsables por definir">Questions to answer — owners TBD</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Where does bid data currently live? (Acumatica, Excel, elsewhere)" data-es="¿Dónde viven actualmente los datos de la oferta?">Where does bid data currently live? (Acumatica, Excel, elsewhere)</div><div class="cl-owner">Ops TBD</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Who physically builds the bid today and what is the step-by-step process?" data-es="¿Quién construye la oferta hoy y cuál es el proceso paso a paso?">Who physically builds the bid today and what is the step-by-step process?</div><div class="cl-owner">Ops TBD</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="What historical data feeds the bid? (hours by project type, headcount, margins)" data-es="¿Qué datos históricos alimentan la oferta?">What historical data feeds the bid? (hours by project type, headcount, margins)</div><div class="cl-owner">Ops TBD</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="How are gearing ratios (build times per module type) currently estimated in the bid?" data-es="¿Cómo se estiman los tiempos de construcción por módulo en la oferta?">How are gearing ratios (build times per module type) currently estimated in the bid?</div><div class="cl-owner">Lissette</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="More questions — owners TBD" data-es="Más preguntas — responsables por definir">More questions — owners TBD</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Who approves the final bid before submission — Giancarlo only, or operations sign-off too?" data-es="¿Quién aprueba la oferta final antes del envío?">Who approves the final bid before submission — Giancarlo only, or operations sign-off too?</div><div class="cl-owner">Giancarlo</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="How are lessons learned from past similar project types currently captured and used in new bids?" data-es="¿Cómo se capturan y usan las lecciones aprendidas de proyectos anteriores?">How are lessons learned from past similar project types currently captured and used in new bids?</div><div class="cl-owner">Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="How do compressed timeline scenarios get priced — is there a multiplier or separate labor model?" data-es="¿Cómo se cotizan los cronogramas comprimidos?">How do compressed timeline scenarios get priced — is there a multiplier or separate labor model?</div><div class="cl-owner">Ops TBD</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Which client types does the bid model need to support beyond Amazon? (Walmart, etc.)" data-es="¿Qué tipos de clientes necesita soportar el modelo de oferta además de Amazon?">Which client types does the bid model need to support beyond Amazon? (Walmart, etc.)</div><div class="cl-owner">Giancarlo</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 1: AWARD -->
+    <div id="s1" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="70" cy="50" r="36" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1.5"/>
+            <text x="70" y="44" font-size="22" fill="#3B6D11" text-anchor="middle" font-family="sans-serif">🏆</text>
+            <text x="70" y="60" font-size="9" fill="#27500A" text-anchor="middle" font-family="sans-serif" font-weight="600">BID WON</text>
+            <rect x="14" y="88" width="112" height="16" rx="4" fill="#0F6E56"/>
+            <text x="70" y="99" font-size="8" fill="#E1F5EE" text-anchor="middle" font-family="sans-serif">BASELINE LOCKED → PROJECT CREATED</text>
+          </svg>
+          <div class="cartoon-label" data-en="Bid becomes the baseline. System activates." data-es="La oferta se convierte en la línea base. El sistema se activa.">Bid becomes the baseline. System activates.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 2 — Award" data-es="Etapa 2 — Adjudicación">Stage 2 — Award</div>
+          <div class="stage-desc" data-en="MOCA wins the bid. The awarded scope, hours, budget, and timeline become the permanent baseline in Acumatica. Everything from this point forward is tracked as variance against it. A project record is automatically created in SharePoint, the 4-week planner template is generated, and historical data from past similar project types is pulled in for reference." data-es="MOCA gana la oferta. El alcance, horas, presupuesto y cronograma adjudicados se convierten en la línea base permanente en Acumatica. Todo lo que sigue se rastrea como varianza contra ella. Se crea automáticamente un registro de proyecto en SharePoint y se genera la plantilla del plan de 4 semanas.">MOCA wins the bid. The awarded scope, hours, budget, and timeline become the permanent baseline in Acumatica. Everything from this point forward is tracked as variance against it. A project record is automatically created in SharePoint, the 4-week planner template is generated, and historical data from past similar project types is pulled in for reference.</div>
+          <div class="stage-tags">
+            <span class="tag tag-auto" data-en="Auto — project record created" data-es="Auto — registro de proyecto creado">Auto — project record created</span>
+            <span class="tag tag-system" data-en="System — baseline locked" data-es="Sistema — línea base bloqueada">System — baseline locked</span>
+            <span class="tag tag-human" data-en="Human — confirm award" data-es="Humano — confirmar adjudicación">Human — confirm award</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card" style="background:var(--red-bg);border-color:#F7C1C1">
+          <div class="cl-card-title" style="color:var(--red);border-color:#F7C1C1" data-en="Award approval — placeholder (owner TBD)" data-es="Aprobación de adjudicación — pendiente (responsable por definir)">Award approval — placeholder (owner TBD)</div>
+          <div style="font-size:12px;color:#791F1F;line-height:1.6;margin-bottom:12px;padding:8px 10px;background:rgba(255,255,255,0.5);border-radius:var(--radius-md)" data-en="It is not yet confirmed who owns the award approval step at MOCA. The questions below need to be answered with the ops team before this section can be completed." data-es="Aún no se ha confirmado quién es responsable del paso de aprobación de la adjudicación en MOCA. Las preguntas a continuación deben responderse con el equipo de operaciones antes de completar esta sección.">It is not yet confirmed who owns the award approval step at MOCA. The questions below need to be answered with the ops team before this section can be completed.</div>
+          <div class="cl-item" style="border-color:#F7C1C1"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" style="color:#791F1F" data-en="Who receives the award notification from Amazon — Giancarlo, ops lead, or both?" data-es="¿Quién recibe la notificación de adjudicación de Amazon — Giancarlo, líder de operaciones, o ambos?">Who receives the award notification from Amazon — Giancarlo, ops lead, or both?</div><div class="cl-owner" style="background:#FCEBEB;color:#791F1F">TBD</div></div>
+          <div class="cl-item" style="border-color:#F7C1C1"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" style="color:#791F1F" data-en="Who formally approves the baseline hours, budget, and SOW before the project activates in Acumatica?" data-es="¿Quién aprueba formalmente las horas base, el presupuesto y el SOW antes de que el proyecto se active en Acumatica?">Who formally approves baseline hours, budget, and SOW before project activates?</div><div class="cl-owner" style="background:#FCEBEB;color:#791F1F">TBD</div></div>
+          <div class="cl-item" style="border-color:#F7C1C1"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" style="color:#791F1F" data-en="Who assigns the operations lead and PM once the award is confirmed?" data-es="¿Quién asigna al líder de operaciones y al PM una vez confirmada la adjudicación?">Who assigns the operations lead and PM once the award is confirmed?</div><div class="cl-owner" style="background:#FCEBEB;color:#791F1F">TBD</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="System — automatic on award" data-es="Sistema — automático al adjudicar">System — automatic on award</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Create project record in SharePoint from Acumatica baseline data" data-es="Crear registro de proyecto en SharePoint desde datos base de Acumatica">Create project record in SharePoint from Acumatica baseline data</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Pull awarded hours by department and lock as baseline budget" data-es="Extraer horas adjudicadas por departamento y bloquear como presupuesto base">Pull awarded hours by department and lock as baseline budget</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Generate blank 4-week planner template and attach to project" data-es="Generar plantilla de plan de 4 semanas en blanco y adjuntar al proyecto">Generate blank 4-week planner template and attach to project</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Pull historical data from past same project type (SSD, ARS, 1DC, TNS, DS) for reference" data-es="Extraer datos históricos de proyectos anteriores del mismo tipo para referencia">Pull historical data from past same project type for reference</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Send kickoff preparation notification to assigned operations lead" data-es="Enviar notificación de preparación del kickoff al líder de operaciones asignado">Send kickoff preparation notification to assigned operations lead</div><div class="cl-owner">Auto</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 2: MOBILIZE -->
+    <div id="s2" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="60" width="120" height="42" rx="5" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+            <circle cx="36" cy="52" r="12" fill="#534AB7"/>
+            <text x="36" y="56" font-size="8" fill="#EEEDFE" text-anchor="middle" font-family="sans-serif">PM</text>
+            <circle cx="70" cy="52" r="12" fill="#7F77DD"/>
+            <text x="70" y="56" font-size="7" fill="#EEEDFE" text-anchor="middle" font-family="sans-serif">NIR</text>
+            <circle cx="104" cy="52" r="12" fill="#AFA9EC"/>
+            <text x="104" y="56" font-size="7" fill="#26215C" text-anchor="middle" font-family="sans-serif">FL</text>
+            <text x="70" y="78" font-size="7" fill="#3C3489" text-anchor="middle" font-family="sans-serif" font-weight="600">MILESTONES · COMPOSITE · STAFFING</text>
+            <text x="70" y="90" font-size="7" fill="#534AB7" text-anchor="middle" font-family="sans-serif">ALL LOADED AUTOMATICALLY</text>
+            <line x1="36" y1="40" x2="36" y2="18" stroke="#534AB7" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="36" y="14" font-size="6" fill="#534AB7" text-anchor="middle" font-family="sans-serif">assigned by algorithm</text>
+          </svg>
+          <div class="cartoon-label" data-en="Team assigned by algorithm. Project loads itself." data-es="Equipo asignado por algoritmo. El proyecto se carga solo.">Team assigned by algorithm. Project loads itself.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 3 — Mobilize" data-es="Etapa 3 — Movilización">Stage 3 — Mobilize</div>
+          <div class="stage-desc" data-en="PM and NIR assigned by the staffing algorithm based on seniority, availability, project type match, and worker passport scores. Kickoff meeting loads milestones and Composite into the project. Inventory tracker activates. Travel booked automatically through Engine. Everything the PM needs is waiting when they log in." data-es="PM y NIR asignados por el algoritmo de personal según antigüedad, disponibilidad, tipo de proyecto y puntuaciones del pasaporte laboral. El kickoff carga hitos y Composite. El rastreador de inventario se activa. El viaje se reserva automáticamente a través de Engine.">PM and NIR assigned by the staffing algorithm based on seniority, availability, project type match, and worker passport scores. Kickoff meeting loads milestones and Composite into the project. Inventory tracker activates. Travel booked automatically through Engine. Everything the PM needs is waiting when they log in.</div>
+          <div class="stage-tags">
+            <span class="tag tag-auto" data-en="Auto — staffing algorithm" data-es="Auto — algoritmo de personal">Auto — staffing algorithm</span>
+            <span class="tag tag-human" data-en="Human — kickoff meeting" data-es="Humano — reunión de kickoff">Human — kickoff meeting</span>
+            <span class="tag tag-system" data-en="System — loads all project data" data-es="Sistema — carga todos los datos del proyecto">System — loads all project data</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="System — staffing algorithm" data-es="Sistema — algoritmo de personal">System — staffing algorithm</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Match PM to project: seniority level, project type experience, current workload, site location" data-es="Asignar PM según: nivel de antigüedad, experiencia, carga actual, ubicación">Match PM to project: seniority, project type experience, workload, location</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Match NIR — pair experienced PM with developing NIR or vice versa based on availability and passport scores" data-es="Asignar NIR — combinar PM experimentado con NIR en desarrollo según disponibilidad y puntajes del pasaporte">Match NIR — pair experienced PM with developing NIR based on passport scores</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Assign floor leaders and skilled labor from Assigner based on awarded headcount" data-es="Asignar líderes de piso y mano de obra calificada desde Assigner según plantilla adjudicada">Assign floor leaders and skilled labor from Assigner</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Book travel in Engine based on mobilization date from baseline" data-es="Reservar viaje en Engine según fecha de movilización de la línea base">Book travel in Engine based on mobilization date</div><div class="cl-owner">Auto</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="PM + Ops — kickoff" data-es="PM + Operaciones — kickoff">PM + Ops — kickoff</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Attend kickoff meeting with Amazon SU PM — confirm ART, ORT, Launch, Demob dates" data-es="Asistir al kickoff con el SU PM de Amazon — confirmar fechas de ART, ORT, Launch, Desmovilización">Attend kickoff with Amazon SU PM — confirm all milestone dates</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Upload Composite 2.0 to SharePoint — system reads module list and generates initial task structure" data-es="Subir Composite 2.0 a SharePoint — el sistema lee la lista de módulos y genera la estructura inicial de tareas">Upload Composite 2.0 — system generates initial task structure</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Confirm area release schedule by floor with GC and log into system" data-es="Confirmar calendario de entrega de áreas por piso con GC y registrar en el sistema">Confirm area release schedule by floor with GC</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Review staffing plan loaded by algorithm — approve or request adjustment" data-es="Revisar el plan de personal cargado por el algoritmo — aprobar o solicitar ajuste">Review staffing plan from algorithm — approve or adjust</div><div class="cl-owner">PM + Ops</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="NIR confirms access: AppSheet, Fieldwire, MBOA, Pre-ORT portal, inventory tracking" data-es="NIR confirma acceso a AppSheet, Fieldwire, MBOA, portal Pre-ORT y rastreo de inventario">NIR confirms all system access and tools are active</div><div class="cl-owner">NIR</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 3: EXECUTE -->
+    <div id="s3" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="28" width="58" height="72" rx="5" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/>
+            <circle cx="37" cy="18" r="12" fill="#EF9F27"/>
+            <text x="37" y="22" font-size="8" fill="#412402" text-anchor="middle" font-family="sans-serif" font-weight="600">PM</text>
+            <rect x="16" y="38" width="42" height="5" rx="2" fill="#EF9F27"/>
+            <rect x="16" y="48" width="30" height="4" rx="2" fill="#FAC775"/>
+            <rect x="16" y="57" width="36" height="4" rx="2" fill="#FAC775"/>
+            <rect x="16" y="66" width="26" height="4" rx="2" fill="#FAC775"/>
+            <rect x="16" y="78" width="42" height="14" rx="3" fill="#854F0B"/>
+            <text x="37" y="88" font-size="7" fill="#FAEEDA" text-anchor="middle" font-family="sans-serif">DAILY UPDATE</text>
+            <rect x="76" y="32" width="54" height="68" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1.5"/>
+            <rect x="80" y="36" width="46" height="9" rx="3" fill="#888780"/>
+            <rect x="80" y="50" width="46" height="36" rx="3" fill="#D3D1C7"/>
+            <rect x="88" y="58" width="30" height="20" rx="2" fill="#B4B2A9"/>
+            <text x="103" y="71" font-size="8" fill="#2C2C2A" text-anchor="middle" font-family="sans-serif">📱 SCAN</text>
+            <rect x="80" y="91" width="46" height="2" rx="1" fill="#5F5E5A"/>
+          </svg>
+          <div class="cartoon-label" data-en="PM updates via Copilot. NIR scans inventory with phone." data-es="PM actualiza vía Copilot. NIR escanea inventario con teléfono.">PM updates via Copilot. NIR scans inventory with phone.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 4 — Execute" data-es="Etapa 4 — Ejecución">Stage 4 — Execute</div>
+          <div class="stage-desc" data-en="Daily field operations. PM talks or types to Copilot in Teams in English or Spanish. NIR receives inventory by scanning UPC barcode with phone camera — system matches UIN, logs receipt, and updates Amazon systems automatically. 4-week planner auto-generates each week. DAT items created for copy-paste into Pre-ORT portal. Labor hours tracked against gearing ratios. Daily project health report generated automatically." data-es="Operaciones diarias de campo. PM habla o escribe a Copilot en Teams en inglés o español. NIR recibe inventario escaneando código UPC con cámara del teléfono. El plan de 4 semanas se genera automáticamente cada semana. Los elementos DAT se crean para copiar y pegar en el portal Pre-ORT. Las horas de mano de obra se rastrean contra los ratios de rendimiento.">Daily field operations. PM talks or types to Copilot in Teams in English or Spanish. NIR receives inventory by scanning UPC barcode with phone camera — system matches UIN, logs receipt, and updates Amazon systems automatically. 4-week planner auto-generates each week. DAT items created for copy-paste into Pre-ORT portal. Labor hours tracked against gearing ratios.</div>
+          <div class="stage-tags">
+            <span class="tag tag-auto" data-en="Auto — planner generated daily" data-es="Auto — plan generado diariamente">Auto — planner generated daily</span>
+            <span class="tag tag-human" data-en="Human — strategy and decisions" data-es="Humano — estrategia y decisiones">Human — strategy and decisions</span>
+            <span class="tag tag-system" data-en="System — tracks vs. baseline" data-es="Sistema — rastrea vs. línea base">System — tracks vs. baseline</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="PM — daily via Copilot (English or Spanish)" data-es="PM — diario vía Copilot (inglés o español)">PM — daily via Copilot (English or Spanish)</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Report deployment % per floor and area — Copilot updates 4-week planner automatically" data-es="Reportar % de despliegue por piso y área — Copilot actualiza el plan automáticamente">Report deployment % per floor — Copilot updates planner automatically</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Report headcount actuals — system flags variance above threshold vs. baseline" data-es="Reportar plantilla real — el sistema señala varianza vs. línea base">Report headcount actuals — system flags variance vs. baseline</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Report area releases and any GC delays — system creates risk items automatically" data-es="Reportar entregas de áreas y retrasos del GC — el sistema crea elementos de riesgo automáticamente">Report area releases and GC delays — system creates risk items</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Assign specific builds to named workers — system tracks who built what and how long" data-es="Asignar construcciones específicas a trabajadores nombrados — el sistema rastrea quién construyó qué y cuánto tiempo">Assign builds to named workers — system tracks time and updates passport</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Review auto-generated DAT items — copy and paste into Pre-ORT portal" data-es="Revisar elementos DAT generados automáticamente — copiar y pegar en portal Pre-ORT">Review DAT items — copy and paste into Pre-ORT portal</div><div class="cl-owner">PM + Auditor</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="NIR — inventory via phone" data-es="NIR — inventario vía teléfono">NIR — inventory via phone</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Scan UPC barcode of received item with phone camera — system matches to UIN, logs receipt, updates Amazon systems" data-es="Escanear código UPC del artículo recibido con cámara del teléfono — el sistema lo vincula al UIN y actualiza sistemas de Amazon">Scan UPC barcode with phone — system matches UIN and updates automatically</div><div class="cl-owner">NIR</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="For items without UPC — use image recognition backup trained on UIN catalog" data-es="Para artículos sin UPC — usar reconocimiento de imagen de respaldo entrenado con catálogo de UINs">For no-UPC items — use image recognition backup</div><div class="cl-owner">NIR</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Flag discrepancies between physical count and system count — Copilot creates discrepancy item automatically" data-es="Señalar discrepancias entre recuento físico y del sistema — Copilot crea artículo de discrepancia automáticamente">Flag discrepancies — Copilot creates discrepancy item automatically</div><div class="cl-owner">NIR</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Update cage location for received items using row/position system (A1, A2, B3)" data-es="Actualizar ubicación en jaula usando sistema de fila/posición (A1, A2, B3)">Update cage location using row/position system (A1, A2, B3)</div><div class="cl-owner">NIR</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 4: CLOSE -->
+    <div id="s4" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="18" width="120" height="72" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1.5"/>
+            <text x="70" y="50" font-size="26" fill="#3B6D11" text-anchor="middle" font-family="sans-serif">✓</text>
+            <text x="70" y="66" font-size="8" fill="#27500A" text-anchor="middle" font-family="sans-serif" font-weight="600">PROJECT COMPLETE</text>
+            <rect x="18" y="74" width="32" height="12" rx="3" fill="#639922"/>
+            <text x="34" y="83" font-size="6.5" fill="#EAF3DE" text-anchor="middle" font-family="sans-serif">PM SCORE</text>
+            <rect x="54" y="74" width="32" height="12" rx="3" fill="#639922"/>
+            <text x="70" y="83" font-size="6.5" fill="#EAF3DE" text-anchor="middle" font-family="sans-serif">NIR SCORE</text>
+            <rect x="90" y="74" width="32" height="12" rx="3" fill="#0F6E56"/>
+            <text x="106" y="83" font-size="6.5" fill="#E1F5EE" text-anchor="middle" font-family="sans-serif">P&amp;L REPORT</text>
+          </svg>
+          <div class="cartoon-label" data-en="Project closes. Everyone gets scored. System learns." data-es="El proyecto cierra. Todos reciben puntuación. El sistema aprende.">Project closes. Everyone gets scored. System learns.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 5 — Close" data-es="Etapa 5 — Cierre">Stage 5 — Close</div>
+          <div class="stage-desc" data-en="The project is completed and scored like a business plan analysis. PM and NIR receive individual performance scores based on schedule adherence, planner compliance, communication quality, and client satisfaction. The project P&L is compared to the original bid — what did we bid, what did we earn, and why. Lessons learned are captured automatically and fed back into the system for future bids and staffing decisions." data-es="El proyecto se completa y se analiza como un plan de negocios. PM y NIR reciben puntuaciones individuales de desempeño. El P&L del proyecto se compara con la oferta original. Las lecciones aprendidas se capturan automáticamente y se retroalimentan al sistema para futuras ofertas y decisiones de personal.">The project is completed and scored like a business plan analysis. PM and NIR receive individual performance scores. The project P&L is compared to the original bid — what did we bid, what did we earn, and why. Lessons learned are captured automatically and fed back into the system for future bids.</div>
+          <div class="stage-tags">
+            <span class="tag tag-system" data-en="System — auto-scorecard" data-es="Sistema — tarjeta de puntuación automática">System — auto-scorecard</span>
+            <span class="tag tag-auto" data-en="Auto — P&L generated" data-es="Auto — P&L generado">Auto — P&amp;L generated</span>
+            <span class="tag tag-human" data-en="Human — final review" data-es="Humano — revisión final">Human — final review</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="PM — project closeout" data-es="PM — cierre del proyecto">PM — project closeout</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Complete MOCA Close Out Report and upload to SharePoint project folder" data-es="Completar el Informe de Cierre de MOCA y subir a SharePoint">Complete MOCA Close Out Report and upload to SharePoint</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Submit Customer Satisfaction form to Amazon SU PM for sign-off" data-es="Enviar formulario de Satisfacción del Cliente al SU PM de Amazon">Submit Customer Satisfaction form to Amazon SU PM</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Evaluate each team member using Post-Project Evaluation — feeds worker passport scores" data-es="Evaluar a cada miembro del equipo — alimenta las puntuaciones del pasaporte laboral">Evaluate each team member — feeds worker passport scores</div><div class="cl-owner">PM</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Return all equipment — Pinnacle tablet, NFC card, laptops, hotspots — log transfers in system" data-es="Devolver todo el equipo y registrar transferencias en el sistema">Return all equipment and log transfers in system</div><div class="cl-owner">PM</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="System — auto-generated at closeout" data-es="Sistema — generado automáticamente al cierre">System — auto-generated at closeout</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Calculate PM score: schedule adherence, planner compliance, client communication, escalation frequency" data-es="Calcular puntuación del PM: cumplimiento del cronograma, tasa de cumplimiento del plan, comunicación con el cliente">Calculate PM score across all performance dimensions</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Calculate NIR score: inventory accuracy rate, discrepancy resolution time, receiving speed vs. gearing ratio" data-es="Calcular puntuación del NIR: tasa de precisión del inventario, tiempo de resolución, velocidad de recepción">Calculate NIR score: accuracy, resolution time, receiving speed</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Generate P&L: bid hours vs. actual, bid budget vs. actual spend, projected margin vs. realized" data-es="Generar P&L: horas ofertadas vs. reales, presupuesto ofertado vs. gasto real, margen proyectado vs. realizado">Generate P&amp;L: bid vs. actual hours, budget, and margin</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Update gearing ratio database with actual build times — improve future bid estimates" data-es="Actualizar base de datos de ratios con tiempos reales — mejorar estimaciones futuras de ofertas">Update gearing ratio database with actual build times</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Update worker passport for each team member with modules completed, build types, hours, scores" data-es="Actualizar pasaporte laboral de cada miembro con módulos completados, tipos de construcción, horas y puntuaciones">Update worker passport for all team members</div><div class="cl-owner">Auto</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 5: LEARN -->
+    <div id="s5" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="70" cy="52" r="40" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+            <path d="M70 18 L70 52 L92 38" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="70" cy="52" r="4" fill="#185FA5"/>
+            <circle cx="70" cy="18" r="5" fill="#378ADD"/>
+            <circle cx="92" cy="38" r="5" fill="#378ADD"/>
+            <circle cx="30" cy="52" r="5" fill="#85B7EB"/>
+            <circle cx="110" cy="52" r="5" fill="#85B7EB"/>
+            <text x="70" y="78" font-size="7" fill="#0C447C" text-anchor="middle" font-family="sans-serif" font-weight="600">SYSTEM GETS SMARTER</text>
+            <text x="70" y="88" font-size="6.5" fill="#185FA5" text-anchor="middle" font-family="sans-serif">EVERY PROJECT IMPROVES THE NEXT</text>
+          </svg>
+          <div class="cartoon-label" data-en="Every project makes the next one smarter." data-es="Cada proyecto hace el siguiente más inteligente.">Every project makes the next one smarter.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Stage 6 — Learn" data-es="Etapa 6 — Aprender">Stage 6 — Learn</div>
+          <div class="stage-desc" data-en="After 30% of gearing ratio data is entered, the system begins estimating build times for new module types based on BOM and image descriptions. After each project closes, the bid model, staffing algorithm, and risk flags all improve. MOCA gets measurably better at bidding, staffing, and executing with every completed project. This is the intelligence layer that makes MOCA's operating system a true competitive advantage." data-es="Después de ingresar el 30% de los datos de ratios de rendimiento, el sistema comienza a estimar tiempos de construcción para nuevos tipos de módulos. Después de cada cierre de proyecto, el modelo de oferta, el algoritmo de personal y las alertas de riesgo mejoran. MOCA mejora mensurablemente en cada proyecto completado.">After 30% of gearing ratio data is entered, the system begins estimating build times for new module types based on BOM and image descriptions. After each project closes, the bid model, staffing algorithm, and risk flags all improve. MOCA gets measurably better with every completed project.</div>
+          <div class="stage-tags">
+            <span class="tag tag-auto" data-en="Auto — system learns continuously" data-es="Auto — el sistema aprende continuamente">Auto — system learns continuously</span>
+            <span class="tag tag-human" data-en="Human — validate AI estimates" data-es="Humano — validar estimaciones de IA">Human — validate AI estimates</span>
+          </div>
+        </div>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="What the system learns after each project" data-es="Lo que el sistema aprende después de cada proyecto">What the system learns after each project</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Gearing ratio refinement — actual build time per module type fed back to improve bid estimates. New module types estimated after 30% data threshold." data-es="Refinamiento de ratios — tiempo real de construcción por tipo de módulo se retroalimenta para mejorar las estimaciones de ofertas.">Gearing ratio refinement — actual build times improve bid estimates</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Staffing algorithm improvement — which PM/NIR pairings performed best by project type, building size, complexity" data-es="Mejora del algoritmo de personal — qué combinaciones PM/NIR tuvieron mejor desempeño por tipo de proyecto">Staffing algorithm improvement — learns best PM/NIR pairings by project type</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Risk pattern recognition — which GC contractors, sites, or project types consistently produce specific risk flags" data-es="Reconocimiento de patrones de riesgo — qué contratistas, sitios o tipos de proyecto producen alertas específicas">Risk pattern recognition — learns which GCs and site types flag consistently</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Compressed timeline modeling — system learns what a 20-week project compressed to 12 weeks actually requires" data-es="Modelado de cronogramas comprimidos — el sistema aprende lo que requiere un proyecto de 20 semanas comprimido a 12">Compressed timeline modeling — learns real resource requirements</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Bid accuracy score — after 10 projects, system reports bid vs. actual variance as confidence score for future bids" data-es="Puntuación de precisión de ofertas — después de 10 proyectos, reporta la varianza como puntuación de confianza">Bid accuracy score — confidence rating for future bids of same type</div><div class="cl-owner">Auto</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="Lissette — gearing ratio data entry (18 field testers)" data-es="Lissette — entrada de datos de ratios (18 testers de campo)">Lissette — gearing ratio data entry (18 field testers)</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Coordinate 18 field testers to time module builds — seasoned workers as baseline, +25% for first-time builders" data-es="Coordinar 18 testers de campo para cronometrar construcciones — trabajadores experimentados como línea base, +25% para nuevos">Coordinate 18 field testers — time each build type, add +25% for first-timers</div><div class="cl-owner">Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Submit module name, BOM, and build time for each module type — system estimates new modules after 30% entered" data-es="Enviar nombre del módulo, BOM y tiempo de construcción para cada tipo — el sistema estima nuevos módulos después del 30%">Submit module name, BOM, and build time — system estimates after 30%</div><div class="cl-owner">Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Validate AI estimates for new module types — approve or correct before system uses in bids" data-es="Validar estimaciones de IA para nuevos tipos de módulos — aprobar o corregir antes de que el sistema las use en ofertas">Validate AI estimates for new modules before they enter the bid model</div><div class="cl-owner">Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Provide build type data for all Amazon project types: SSD, 1DC, ARS, TNS, DS, Tier 1, Tier 2" data-es="Proporcionar datos de tipos de construcción para todos los tipos de proyectos de Amazon: SSD, 1DC, ARS, TNS, DS">Provide build type data for SSD, 1DC, ARS, TNS, DS, Tier 1, Tier 2</div><div class="cl-owner">Lissette</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKER PASSPORT -->
+    <div id="s6" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="15" y="14" width="110" height="82" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+            <circle cx="42" cy="42" r="14" fill="#1D9E75"/>
+            <text x="42" y="46" font-size="9" fill="#E1F5EE" text-anchor="middle" font-family="sans-serif" font-weight="600">JR</text>
+            <text x="42" y="65" font-size="7" fill="#085041" text-anchor="middle" font-family="sans-serif">Floor Leader</text>
+            <text x="42" y="74" font-size="6.5" fill="#0F6E56" text-anchor="middle" font-family="sans-serif">Level 3</text>
+            <rect x="64" y="22" width="54" height="68" rx="4" fill="#9FE1CB"/>
+            <text x="91" y="36" font-size="7" fill="#04342C" text-anchor="middle" font-family="sans-serif" font-weight="600">WORKER PASSPORT</text>
+            <rect x="68" y="40" width="46" height="4" rx="2" fill="#1D9E75"/>
+            <rect x="68" y="49" width="36" height="4" rx="2" fill="#5DCAA5"/>
+            <rect x="68" y="58" width="40" height="4" rx="2" fill="#5DCAA5"/>
+            <rect x="68" y="67" width="28" height="4" rx="2" fill="#9FE1CB"/>
+            <rect x="68" y="76" width="20" height="4" rx="2" fill="#9FE1CB"/>
+          </svg>
+          <div class="cartoon-label" data-en="Every worker has a skill passport that grows with every build." data-es="Cada trabajador tiene un pasaporte de habilidades que crece con cada construcción.">Every worker has a skill passport that grows with every build.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Worker passport system" data-es="Sistema de pasaporte laboral">Worker passport system</div>
+          <div class="stage-desc" data-en="Every MOCA field worker has a digital passport that records their build types completed, modules built, projects worked, hours by category, skill level, certifications, and performance scores. The system uses this to assign the right person to the right task. The passport updates automatically as builds are assigned and completed. HR owns skill level definitions and promotion criteria." data-es="Cada trabajador de campo de MOCA tiene un pasaporte digital que registra los tipos de construcción completados, módulos construidos, proyectos trabajados, horas por categoría, nivel de habilidad, certificaciones y puntuaciones de desempeño. El sistema usa esto para asignar a la persona correcta a la tarea correcta.">Every MOCA field worker has a digital passport recording build types completed, modules built, projects worked, hours by category, skill level, certifications, and performance scores. The system uses this to assign the right person to the right task. Passport updates automatically as builds are completed.</div>
+          <div class="stage-tags">
+            <span class="tag tag-auto" data-en="Auto — updates after each build" data-es="Auto — se actualiza después de cada construcción">Auto — updates after each build</span>
+            <span class="tag tag-human" data-en="Human — HR sets skill levels" data-es="Humano — RRHH define niveles de habilidad">Human — HR sets skill levels</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="passport-card">
+        <div class="passport-top">
+          <div class="p-avatar">JR</div>
+          <div>
+            <div class="p-name">Jericho Ramirez <span style="font-size:12px;color:var(--gray-400);font-weight:400">— Floor Leader · Level 3</span></div>
+            <div class="p-role">14 projects · 847 build hours · joined MOCA 2023</div>
+          </div>
+          <div class="p-badge">Active · MQY2</div>
+        </div>
+        <div class="skill-grid">
+          <div class="skill-item"><div class="skill-name">Problem solve carts</div><div class="skill-track"><div class="skill-fill" style="width:90%;background:#1D9E75"></div></div><div class="skill-count">47 built · avg 2.1 hrs each</div></div>
+          <div class="skill-item"><div class="skill-name">5S — modules</div><div class="skill-track"><div class="skill-fill" style="width:80%;background:#1D9E75"></div></div><div class="skill-count">38 completed · certified</div></div>
+          <div class="skill-item"><div class="skill-name">Dehnco desk assembly</div><div class="skill-track"><div class="skill-fill" style="width:70%;background:#5DCAA5"></div></div><div class="skill-count">29 built · avg 1.8 hrs each</div></div>
+          <div class="skill-item"><div class="skill-name">Netting installation</div><div class="skill-track"><div class="skill-fill" style="width:50%;background:#5DCAA5"></div></div><div class="skill-count">12 sections installed</div></div>
+          <div class="skill-item"><div class="skill-name">Overhead signage</div><div class="skill-track"><div class="skill-fill" style="width:40%;background:#9FE1CB"></div></div><div class="skill-count">8 installs · aerial cert held</div></div>
+          <div class="skill-item"><div class="skill-name">Boplan assembly</div><div class="skill-track"><div class="skill-fill" style="width:30%;background:#D3D1C7"></div></div><div class="skill-count">6 installs · still learning</div></div>
+        </div>
+      </div>
+
+      <div class="cl-grid" style="margin-top:20px">
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="HR — skill level definitions (to build)" data-es="RRHH — definiciones de nivel de habilidad (por construir)">HR — skill level definitions (to build)</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Define skill levels 1–5 for PM, NIR, Floor Leader, Skilled Labor, Temp — what qualifies each level and who approves promotion" data-es="Definir niveles de habilidad 1-5 para PM, NIR, Líder de Piso, Mano de Obra Calificada, Temporal">Define skill levels 1–5 for each role — qualification criteria and promotion approval</div><div class="cl-owner">HR + Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Define how long a worker is considered 'new' — recommended: first 3 projects or 90 days in role, whichever is later" data-es="Definir cuánto tiempo un trabajador es considerado 'nuevo' — recomendado: primeros 3 proyectos o 90 días">Define 'new worker' threshold — recommended: 3 projects or 90 days, whichever is later</div><div class="cl-owner">HR</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Define which build types must be completed to advance each skill level" data-es="Definir qué tipos de construcción deben completarse para avanzar cada nivel de habilidad">Define build types required to advance each skill level</div><div class="cl-owner">HR + Lissette</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Define certifications that must be logged in passport: forklift, aerial lift, first aid, KNET, etc." data-es="Definir certificaciones que deben registrarse en el pasaporte: montacargas, plataforma aérea, primeros auxilios, KNET">Define certifications to log in passport: forklift, aerial lift, first aid, KNET</div><div class="cl-owner">HR + Safety</div></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-title" data-en="System — passport tracking" data-es="Sistema — rastreo del pasaporte">System — passport tracking</div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="When PM assigns a named worker to a build task, system logs it to their passport with start timestamp" data-es="Cuando el PM asigna a un trabajador a una tarea, el sistema la registra en su pasaporte con marca de tiempo">When PM assigns a build task, system logs to passport with timestamp</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="When task is marked complete, system records actual time, updates skill bar, and increments module count" data-es="Cuando la tarea se marca como completa, el sistema registra el tiempo real y actualiza la barra de habilidades">On task completion, records time and updates skill bar automatically</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="Passport is visible to the staffing algorithm — feeds the next project's team assignment" data-es="El pasaporte es visible para el algoritmo de personal — alimenta la asignación de equipo del próximo proyecto">Passport feeds the staffing algorithm for next project assignment</div><div class="cl-owner">Auto</div></div>
+          <div class="cl-item"><div class="cl-check" onclick="tog(this)"></div><div class="cl-text" data-en="PM and NIR can view their own passport and see how they are progressing toward the next skill level" data-es="PM y NIR pueden ver su propio pasaporte y cómo progresan hacia el siguiente nivel de habilidad">PM and NIR can view own passport and progression toward next level</div><div class="cl-owner">Auto</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILOT PLAN -->
+    <div id="s7" class="stage-panel">
+      <div class="stage-hero">
+        <div class="cartoon-frame">
+          <svg viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="22" width="120" height="72" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+            <circle cx="40" cy="58" r="16" fill="#D85A30"/>
+            <text x="40" y="55" font-size="8" fill="#FAECE7" text-anchor="middle" font-family="sans-serif" font-weight="600">PILOT</text>
+            <text x="40" y="66" font-size="7" fill="#FAECE7" text-anchor="middle" font-family="sans-serif">DS site</text>
+            <rect x="66" y="30" width="56" height="56" rx="5" fill="#F0997B"/>
+            <circle cx="94" cy="48" r="12" fill="#993C1D"/>
+            <text x="94" y="45" font-size="7" fill="#FAECE7" text-anchor="middle" font-family="sans-serif">Lissette</text>
+            <text x="94" y="55" font-size="6.5" fill="#FAECE7" text-anchor="middle" font-family="sans-serif">Ops Lead</text>
+            <rect x="70" y="68" width="48" height="12" rx="3" fill="#712B13"/>
+            <text x="94" y="77" font-size="7" fill="#FAECE7" text-anchor="middle" font-family="sans-serif">WEEKS 1 — 9+</text>
+          </svg>
+          <div class="cartoon-label" data-en="A simple delivery station. Lissette as ops lead. Real data from day one." data-es="Una estación de entrega simple. Lissette como líder de operaciones. Datos reales desde el día uno.">A simple delivery station. Lissette as ops lead. Real data from day one.</div>
+        </div>
+        <div>
+          <div class="stage-title" data-en="Pilot plan — test program" data-es="Plan piloto — programa de prueba">Pilot plan — test program</div>
+          <div class="stage-desc" data-en="One delivery station site. One seasoned PM selected by Lissette. Lissette as operational lead on the pilot. The goal is to test the full system lifecycle end to end — from award to close — on the simplest possible project type, collect real data, and refine before rolling out to all sites. The system should work on any project type and use the same interface for every PM." data-es="Un sitio de estación de entrega. Un PM experimentado seleccionado por Lissette. Lissette como líder operativa del piloto. El objetivo es probar el ciclo de vida completo del sistema de extremo a extremo en el tipo de proyecto más simple posible, recopilar datos reales y refinar antes de implementarlo en todos los sitios.">One delivery station site. One seasoned PM selected by Lissette. Lissette as operational lead on the pilot. The goal is to test the full system lifecycle end to end — from award to close — on the simplest possible project type, collect real data, and refine before rolling out to all sites.</div>
+          <div class="stage-tags">
+            <span class="tag tag-human" data-en="Lissette — ops lead" data-es="Lissette — líder de operaciones">Lissette — ops lead</span>
+            <span class="tag tag-system" data-en="Delivery station project type" data-es="Tipo de proyecto: estación de entrega">Delivery station project type</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-bar-row">
+        <div class="phase-block">
+          <div class="phase-num">Phase 1</div>
+          <div class="phase-name" data-en="Foundation" data-es="Fundación">Foundation</div>
+          <div class="phase-time" data-en="Weeks 1–2" data-es="Semanas 1–2">Weeks 1–2</div>
+          <div class="phase-stripe" style="background:#378ADD"></div>
+        </div>
+        <div class="phase-block">
+          <div class="phase-num">Phase 2</div>
+          <div class="phase-name" data-en="Mobilize pilot" data-es="Movilizar piloto">Mobilize pilot</div>
+          <div class="phase-time" data-en="Weeks 3–4" data-es="Semanas 3–4">Weeks 3–4</div>
+          <div class="phase-stripe" style="background:#1D9E75"></div>
+        </div>
+        <div class="phase-block">
+          <div class="phase-num">Phase 3</div>
+          <div class="phase-name" data-en="Execute live" data-es="Ejecutar en vivo">Execute live</div>
+          <div class="phase-time" data-en="Weeks 5–8" data-es="Semanas 5–8">Weeks 5–8</div>
+          <div class="phase-stripe" style="background:#D85A30"></div>
+        </div>
+        <div class="phase-block">
+          <div class="phase-num">Phase 4</div>
+          <div class="phase-name" data-en="Score + refine" data-es="Puntuar + refinar">Score + refine</div>
+          <div class="phase-time" data-en="Week 9+" data-es="Semana 9+">Week 9+</div>
+          <div class="phase-stripe" style="background:#BA7517"></div>
+        </div>
+      </div>
+
+      <div class="pilot-grid">
+        <div class="pilot-card">
+          <div class="pilot-card-title" data-en="Weeks 1–2 — foundation" data-es="Semanas 1–2 — fundación">Weeks 1–2 — foundation</div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Select pilot site (DS) and confirm seasoned PM with Lissette" data-es="Seleccionar sitio piloto (DS) y confirmar PM experimentado con Lissette">Select pilot site (DS) and confirm PM with Lissette</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Build SharePoint lists for project, milestones, inventory, headcount" data-es="Construir listas de SharePoint para proyecto, hitos, inventario, plantilla">Build SharePoint lists for project, milestones, inventory, headcount</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Build Power Apps PM update form — English and Spanish interface" data-es="Construir formulario de actualización del PM — interfaz en inglés y español">Build Power Apps PM update form — English and Spanish</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Build Copilot bot in Teams — basic field update commands in both languages" data-es="Construir bot Copilot en Teams — comandos básicos en ambos idiomas">Build Copilot bot in Teams — basic commands, both languages</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Connect Acumatica baseline data to project record" data-es="Conectar datos base de Acumatica al registro del proyecto">Connect Acumatica baseline to project record</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Enter first 20% of gearing ratio data with Lissette and 18 field testers" data-es="Ingresar el primer 20% de datos de ratios con Lissette y 18 testers de campo">Enter first 20% of gearing ratio data with 18 field testers</span></div>
+        </div>
+        <div class="pilot-card">
+          <div class="pilot-card-title" data-en="Weeks 3–4 — mobilize pilot" data-es="Semanas 3–4 — movilizar piloto">Weeks 3–4 — mobilize pilot</div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Run pilot PM through full kickoff flow — confirm all milestone dates load correctly" data-es="Ejecutar el PM piloto a través del flujo completo de kickoff — confirmar que todos los hitos se cargan correctamente">Run pilot PM through full kickoff flow in system</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Upload Composite — confirm module task list auto-generates" data-es="Subir Composite — confirmar que la lista de tareas de módulos se genera automáticamente">Upload Composite — confirm task list auto-generates</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Test phone UPC scanning for inventory receipt — confirm UIN match and system update" data-es="Probar escaneo UPC con teléfono — confirmar coincidencia de UIN y actualización del sistema">Test phone UPC scanning — confirm UIN match and system update</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Assign first build task to named worker — confirm passport tracking is live" data-es="Asignar primera tarea de construcción a trabajador nombrado — confirmar que el seguimiento del pasaporte está activo">Assign first build task — confirm passport tracking is live</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Test Copilot in English and Spanish — confirm both update the same project record" data-es="Probar Copilot en inglés y español — confirmar que ambos actualizan el mismo registro del proyecto">Test Copilot in both languages — confirm same project record updates</span></div>
+        </div>
+        <div class="pilot-card">
+          <div class="pilot-card-title" data-en="Weeks 5–8 — execute live" data-es="Semanas 5–8 — ejecutar en vivo">Weeks 5–8 — execute live</div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="PM uses Copilot daily for all project updates — no manual emails" data-es="PM usa Copilot diariamente para todas las actualizaciones — sin correos manuales">PM uses Copilot daily — no manual status emails</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="NIR uses phone camera for all inventory receiving — validate accuracy vs. AppSheet" data-es="NIR usa cámara del teléfono para toda la recepción de inventario — validar precisión vs. AppSheet">NIR uses phone for all inventory receiving — validate vs. AppSheet</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="4-week planner auto-generated each week — PM reviews and approves, not builds" data-es="Plan de 4 semanas generado automáticamente — PM revisa y aprueba, no construye">4-week planner auto-generates — PM approves, not builds</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="DAT items auto-generated — PM copies and pastes into Pre-ORT portal" data-es="Elementos DAT generados automáticamente — PM copia y pega en el portal Pre-ORT">DAT items auto-generated — PM copies into Pre-ORT portal</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Daily project health report reviewed by Tasha and Lissette — no chasing emails" data-es="Informe diario de salud del proyecto revisado por Tasha y Lissette — sin perseguir correos">Daily health report reviewed by Tasha and Lissette — no chasing emails</span></div>
+        </div>
+        <div class="pilot-card">
+          <div class="pilot-card-title" data-en="Week 9+ — score and refine" data-es="Semana 9+ — puntuar y refinar">Week 9+ — score and refine</div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Run auto-scorecard on pilot PM and NIR — review with Lissette for calibration" data-es="Ejecutar tarjeta de puntuación automática del PM y NIR piloto — revisar con Lissette para calibración">Run auto-scorecard on pilot PM and NIR — review with Lissette</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Compare pilot bid vs. actual — identify top 3 variances and root causes" data-es="Comparar oferta piloto vs. real — identificar las 3 principales varianzas y causas raíz">Compare bid vs. actual — identify top 3 variances and root causes</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Document what worked and what did not — update system before rolling out to next site" data-es="Documentar qué funcionó y qué no — actualizar el sistema antes de implementarlo en el siguiente sitio">Document wins and gaps — update before rolling out to next site</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Confirm gearing ratio model improved — compare estimated vs. actual build times" data-es="Confirmar que el modelo de ratios mejoró — comparar tiempos de construcción estimados vs. reales">Confirm gearing ratio model improved from pilot data</span></div>
+          <div class="pilot-item"><span class="pilot-dot"></span><span data-en="Present pilot results to Giancarlo and ops team — green light rollout to all sites" data-es="Presentar resultados del piloto a Giancarlo y al equipo — luz verde para implementación en todos los sitios">Present results to Giancarlo — green light rollout to all sites</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /shell -->
+
+<script>
+const titles=['Stage 1 — Bid','Stage 2 — Award','Stage 3 — Mobilize','Stage 4 — Execute','Stage 5 — Close','Stage 6 — Learn','Worker Passport','Pilot Plan'];
+const titlesEs=['Etapa 1 — Oferta','Etapa 2 — Adjudicación','Etapa 3 — Movilización','Etapa 4 — Ejecución','Etapa 5 — Cierre','Etapa 6 — Aprender','Pasaporte Laboral','Plan Piloto'];
+let currentLang='en';
+
+function showStage(idx,el){
+  document.querySelectorAll('.stage-panel').forEach((p,i)=>p.classList.toggle('visible',i===idx));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-title').textContent=currentLang==='en'?titles[idx]:titlesEs[idx];
+  return false;
+}
+
+function tog(el){el.classList.toggle('done')}
+
+function setLang(lang,btn){
+  currentLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    if(el.tagName!=='DIV'&&el.tagName!=='SPAN'&&el.tagName!=='BUTTON'){return}
+    el.textContent=lang==='en'?(el.dataset.en||el.textContent):(el.dataset.es||el.dataset.en||el.textContent);
+  });
+  const activeIdx=[...document.querySelectorAll('.nav-item')].findIndex(n=>n.classList.contains('active'));
+  if(activeIdx>=0)document.getElementById('page-title').textContent=lang==='en'?titles[activeIdx]:titlesEs[activeIdx];
+}
+</script>
+</body>
+</html>
